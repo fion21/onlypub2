@@ -1,9 +1,15 @@
 <template>
+
   <div class="about">
-    <h1>This is an about page</h1>
-    <p class="text-red-900 transform -rotate-45"> test if tailwind is working or not</p>
- <div class="text-blue-900 bg-white p-5">
-            dummy text?
-          </div>
-  </div>
+
+      <img
+        src="@/assets/images/greenblob.jpg"
+        alt=""
+        class="absolute -top-10 left-0 object-none"
+      />
+      </div>
+
+
+    <h1 class="text-red-900 transform -rotate-45"> test if tailwind is working or not </h1>
+
 </template>
