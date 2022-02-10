@@ -1,27 +1,17 @@
 # Openpub2
-# Part 2
-# Creating the Styling and User Interface
+# Part 3
+# Running through the state
 
-## Updated refs of vue (VUE JS) which start of the API manifestation, has yet to crystalise.
+## Questions interactive with double click and score counter system for correct/incorrect answers
 ```
-ref()
-Takes an inner value and returns a reactive and mutable ref object, which has a single property .value that points to the inner value.
+At this stage of the project I have not called from a separate API, just using hard coding to test as is. The calls bring pages 1-3 and update the score for the correct question.
+Left to fix: Numbering from intergers to letters in the counter system
+pictures available through the screenshots
 ```
-### Home.vue, About.vue
-```
-
-UI update with green graphic logo top, about page  has full page of the graphic
-On the quiz, updated the toggle feature from pointer to cursor, and toggle colours and child elements for wrong or right answers.
-=======
-```
-### Questions
-```
-At this point the questions are still hard coded.
-```
-### yarn test:unit
-```
-  1 passing (27ms)
-
- MOCHA  Tests completed successfully
- ```
-=======
+### What remains
+Calling from a separate API
+Creating a login system
+Creating a way to display the information as a 'live' site via github's link facility
+Possiblly depoying to Heroku or Netlify to see as a live site
+Using Axios to call the API
+Reducing size to a build edition
