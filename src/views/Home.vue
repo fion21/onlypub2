@@ -1,5 +1,17 @@
 <template>
-  <main class="flex h-screen items-center justify-center bg-gray-100">
+  <select-game
+    @create-game="createGame"
+    @join-game="joinGame"
+    v-if="!gameEntered"
+  />
+  <main v-else class="flex h-screen items-center justify-center bg-gray-100">
+    <!-- quiz overlay -->
+    <QuizCompleteOverlay
+      v-if="endOfQuiz"
+      :percent="percentageScore"
+      @restartQuiz="onQuizStart"
+    ></QuizCompleteOverlay>
+
     <!-- quiz container -->
 
     <div
@@ -11,7 +23,7 @@
         class="absolute -top-10 left-0 object-none"
       />
 
-<!-- contents -->
+      <!-- contents -->
       <div class="relative z-20">
         <!-- score container -->
         <div class="text-right text-gray-800">
@@ -21,7 +33,10 @@
 
         <!-- timer container -->
         <div class="bg-white shadow-lg p-1 rounded-full w-full h-5 mt-4">
-          <div class="bg-blue-700 rounded-full w-11/12 h-full"></div>
+          <div
+            class="bg-blue-700 rounded-full w-11/12 h-full"
+            :style="`width:${timer}%`"
+          ></div>
         </div>
 
         <!-- question container -->
@@ -29,7 +44,7 @@
           class="rounded-lg bg-gray-100 p-2 neumorph-1 text-center font-bold text-gray-800 mt-8"
         >
           <div class="bg-white p-5">
-            {{ currentQuestion.question }}
+            {{ formattedQuestion }}
           </div>
         </div>
 
@@ -83,51 +98,39 @@
 }
 </style>
 
- <script>
+<script>
 import { onMounted, ref } from "vue";
+import QuizCompleteOverlay from "./components/QuizCompleteOverlay";
+
+import SelectGame from "./components/SelectGame.vue";
 export default {
   setup() {
     // data
     let canClick = true;
+    let timer = ref(100);
+    let endOfQuiz = ref(false);
     let questionCounter = ref(0);
     let score = ref(0);
+    let gameEntered = ref(false);
     const currentQuestion = ref({
       question: "",
       answer: 1,
       choices: [],
     });
-    const questions = [
-      {
-        question:
-          "The first ever commercial bungee jump took place in which country??",
-        answer: 1,
-        choices: ["South Africa", "Australia", "New Zealand"],
-      },
-      {
-        question: "When did the British children's television programme Blue Peter first air??",
-        answer: 1,
-        choices: ["1958", "1968", "1978"],
-      },
-      {
-        question: "Where did Disney open a resort on June 16, 2016?",
-        answer: 2,
-        choices: [
-          "Singapore",
-          "Shanghai",
-          "Tokyo",
-        ],
-      },
-    ];
+    let percentageScore = ref(0);
+    const questions = ref([]);
     const loadQuestion = () => {
       canClick = true;
       // Check if there are more questions to load
-      if (questions.length > questionCounter.value) {
+      if (questions.value.length > questionCounter.value) {
         // load question
-        currentQuestion.value = questions[questionCounter.value];
+        timer.value = 100;
+        currentQuestion.value = questions.value[questionCounter.value];
         console.log("Current questions", currentQuestion.value);
         questionCounter.value++;
       } else {
         // no more questions
+        onQuizEnd();
         console.log("Out of questions");
       }
     };
@@ -160,6 +163,7 @@ export default {
           divContainer.classList.add("option-wrong");
           divContainer.classList.remove("option-default");
         }
+        timer.value = 100;
         canClick = false;
         // TODO go to next question
         clearSelected(divContainer);
@@ -169,20 +173,130 @@ export default {
         console.log("cant select question");
       }
     };
+    const countDownTimer = function () {
+      let interVal = setInterval(() => {
+        if (timer.value > 0) {
+          timer.value--;
+        } else {
+          console.log("timer is up");
+          onQuizEnd();
+          clearInterval(interVal);
+        }
+      }, 150);
+    };
+    const joinGame = function (gameName) {
+      console.log("firing join game", gameName);
+
+      gameEntered.value = true;
+    };
+    const createGame = function (gameName) {
+      console.log("firing create game", gameName);
+      gameEntered.value = true;
+    };
+    const fetchQuestionsFromServer = async function () {
+      console.log("fetch questions from server");
+      fetch("https://opentdb.com/api.php?amount=3&category=18")
+        .then((res) => {
+          return res.json();
+        })
+        .then((data) => {
+          // map json to fit our own arrangement
+          const newQuestions = data.results.map((serverQuestion) => {
+            const arrangedQuestion = {
+              question: serverQuestion.question,
+              choices: "",
+              answer: "",
+            };
+            const choices = serverQuestion.incorrect_answers;
+            arrangedQuestion.answer = Math.floor(Math.random() * 4 + 1);
+            choices.splice(
+              arrangedQuestion.answer - 1,
+              0,
+              serverQuestion.correct_answer
+            );
+            arrangedQuestion.choices = choices;
+            return arrangedQuestion;
+          });
+          console.log("new formatted questions", newQuestions);
+          questions.value = newQuestions;
+          loadQuestion();
+          countDownTimer();
+        });
+    };
+    const onQuizEnd = function () {
+      // calculate the percentage
+      percentageScore.value = (score.value / 100) * 100;
+      // stop timers
+      timer.value = 0;
+      // show overlay
+      endOfQuiz.value = true;
+    };
+    const onQuizStart = function () {
+      //1 . set default values
+      canClick = true;
+      timer.value = 100;
+      endOfQuiz.value = false;
+      questionCounter.value = 0;
+      score.value = 0;
+      currentQuestion.value = {
+        question: "",
+        answer: 1,
+        choices: [],
+      };
+      percentageScore.value = 0;
+      questions.value = [];
+      //2. fetch questions from server
+      fetchQuestionsFromServer();
+    };
     // lifecycle hooks
     onMounted(() => {
-      loadQuestion();
+      fetchQuestionsFromServer();
     });
     // return
     return {
+      timer,
       currentQuestion,
       questions,
       score,
+      gameEntered,
       questionCounter,
       loadQuestion,
       onOptionClicked,
       optionChosen,
+      joinGame,
+      createGame,
+      endOfQuiz,
+      onQuizEnd,
+      percentageScore,
+      onQuizStart,
     };
+  },
+  computed: {
+    formattedQuestion() {
+      let entities = {
+        amp: "&",
+        apos: "'",
+        "#x27": "'",
+        "#x2F": "/",
+        "#39": "'",
+        "#47": "/",
+        lt: "<",
+        gt: ">",
+        nbsp: " ",
+        quot: '"',
+        "#039": "'",
+      };
+      return this.currentQuestion.question.replace(
+        /&([^;]+);/gm,
+        function (match, entity) {
+          return entities[entity] || match;
+        }
+      );
+    },
+  },
+  components: {
+    QuizCompleteOverlay,
+    SelectGame,
   },
 };
 </script>

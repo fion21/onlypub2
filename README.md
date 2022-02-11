@@ -1,17 +1,16 @@
 # Openpub2
-# Part 3
-# Running through the state
+# Part 4
+# Creating the Login Screen and Joining a Multi-Player Quiz
 
-## Questions interactive with double click and score counter system for correct/incorrect answers
+## Connecting a Backend
 ```
-At this stage of the project I have not called from a separate API, just using hard coding to test as is. The calls bring pages 1-3 and update the score for the correct question.
-Left to fix: Numbering from intergers to letters in the counter system
-pictures available through the screenshots
+I previously set up login credetials with `Firebase` which works well with `Vue` as a cloud based SaaS to host whatever backend data semantics we seek to store or retrieve, however after much trial and error, I have decided to look into `SocketIO`, as no password authenticaion is required in this project.
 ```
-### What remains
-Calling from a separate API
-Creating a login system
-Creating a way to display the information as a 'live' site via github's link facility
-Possiblly depoying to Heroku or Netlify to see as a live site
-Using Axios to call the API
-Reducing size to a build edition
+### Elements of the project stages
+* Backend/FE/Full-Stack: Connecting to a server
+* UX: A player can create a new pub quiz
+* UX: A player can join an existing pub quiz
+* UX: Play the quiz
+* UX: Broadcast the state to all parties in a group quiz
+* Backend/FE/Full-stack: Everything is working!
+
